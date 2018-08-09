@@ -1,0 +1,12 @@
+66c66,68
+< 		self.func_formfactors_interp["VBF13"] = RedCoupLO.VBF13_ff() 
+---
+>             # Fix bug https://answers.launchpad.net/lilith/+question/668185
+>             if "VBF13" not in redCp:
+>                 self.func_formfactors_interp["VBF13"] = RedCoupLO.VBF13_ff() 
+92c94,96
+< 		self.func_formfactors_interp["VBF13"] = RedCoupLO.VBF13_ff() 
+---
+>             # Fix bug https://answers.launchpad.net/lilith/+question/668185
+>             if "VBF13" not in redCp and "VBF13" not in self.func_formfactors_interp:
+>                 self.func_formfactors_interp["VBF13"] = RedCoupLO.VBF13_ff() 
