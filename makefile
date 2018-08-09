@@ -76,15 +76,6 @@ lilith.o: $(LILITHCAPI)/lilith.c lilith
 bin/lilith.x: lilith.cpp lilith.o ./include/multinest.hpp ./include/higgs.hpp multinest
 	$(CXX) $(CXXFLAGS) $(PYFLAGS) $< -I./include/ -I$(LILITHCAPI) $(NESTLIB) -o $@ $(LFLAGS) lilith.o
 
-# Ctitical temperature code
-
-CT = ./CriticalTemp
-CTINC = -I$(CT)/include -I/usr/include/libalglib/ -I/usr/include/boost/
-CTLIB = -L$(CT)/lib/ -lCriticalTemp -lalglib -lboost_log -lnlopt
-
-ct:
-	make -C CriticalTemp
-
 # sarah: fs
 # 	-(cd $(FS) && ./install-sarah)
 
@@ -105,14 +96,6 @@ scan_mh_mn.o: scan_mh_mn.cpp $(HEADER)
 
 bin/scan_mh_mn.x: scan_mh_mn.o lilith.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) $(OPTIMLIB) -lgsl -lgslcblas $(LFLAGS)
-
-# Main program - FlexibleSUSY, Lilith, scanner and CriticalTemp
-
-scan_mh_mn_ct.o: scan_mh_mn_ct.cpp $(HEADER)
-	$(CXX) $(CXXFLAGS) $(PYFLAGS) -I./include/ $(OPTIMINC) $(FSINC) -I$(LILITHCAPI) $(CTINC) -c $< -o $@ 
-
-bin/scan_mh_mn_ct.x: scan_mh_mn_ct.o lilith.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) $(OPTIMLIB) $(CTLIB) -lgsl -lgslcblas $(LFLAGS)
 
 
 # Clean build files - but don't delete auto-generated or downloaded code
