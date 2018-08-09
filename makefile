@@ -27,6 +27,8 @@ FSLIB := $(FS)/models/THDMIISNMSSMBCsimple/libTHDMIISNMSSMBCsimple.a $(FS)/model
 
 all: bin/mn.x bin/lilith.x bin/scan_mh_mn.x
 
+init: multinest lilith
+
 start: multinest lilith bin/mn.x bin/lilith.x bin/scan_mh_mn.x
 
 multinest:
