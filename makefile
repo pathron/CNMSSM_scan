@@ -1,4 +1,4 @@
-.PHONY: multinest lilith optim sarah fs model
+.PHONY: multinest lilith sarah fs model
 
 CXX := g++
 CXXFLAGS :=-std=c++11 -O2 -fPIC
@@ -25,6 +25,9 @@ SARAH = ~/.Mathematica/Applications/SARAH/
 FSINC := -I$(FS)/config -I$(FS)/model_specific/SM -I$(FS)/src -I$(FS)/models/THDMIISNMSSMBCsimple -I/usr/include/eigen3 -I$(FS)/slhaea
 FSLIB := $(FS)/models/THDMIISNMSSMBCsimple/libTHDMIISNMSSMBCsimple.a $(FS)/model_specific/SM/libmodel_specific_SM.a $(FS)/src/libflexisusy.a
 
+all: bin/mn.x bin/lilith.x bin/scan_mh_mn.x
+
+start: multinest lilith bin/mn.x bin/lilith.x bin/scan_mh_mn.x
 
 multinest:
 	[ -d $(MULTINEST) ] || git clone https://github.com/JohannesBuchner/MultiNest.git $(MULTINEST) 
@@ -34,26 +37,6 @@ multinest:
 
 bin/mn.x: multinest.cpp ./include/multinest.hpp multinest
 	$(CXX) $(CXXFLAGS) $< -I./include/ $(NESTLIB) -o $@
-
-# Optim scanner
-
-OPTIM = ./optim
-OPTIMINC = -I$(OPTIM)/include 
-OPTIMLIB = -L$(OPTIM) -loptim 
-
-optim:
-	[ -d $(OPTIM) ] || git clone https://github.com/kthohr/optim $(OPTIM)
-	[ -f $(OPTIM)/liboptim.so ] || (cd $(OPTIM) && ./configure && make)
-
-# Example optim program
-
-bin/optim.x: optim.cpp ./include/wrap_optim.hpp optim 
-	$(CXX) $(CXXFLAGS) $< -I./include/ $(OPTIMINC) $(OPTIMLIB) -o $@
-
-# Example program that uses optim and MultiNest
-
-bin/general.x: general.cpp ./include/wrap_optim.hpp ./include/multinest.hpp optim multinest
-	$(CXX) $(CXXFLAGS) $< -I./include/ $(OPTIMINC) $(OPTIMLIB) $(NESTLIB) -o $@
 
 # Lilith program for Higgs likelihood 
 
@@ -92,13 +75,16 @@ bin/lilith.x: lilith.cpp lilith.o ./include/multinest.hpp ./include/higgs.hpp mu
 # Main program - FlexibleSUSY, Lilith and scanner
 
 scan_mh_mn.o: scan_mh_mn.cpp $(HEADER)
-	$(CXX) $(CXXFLAGS) $(PYFLAGS) -I./include/ $(OPTIMINC) $(FSINC) -I$(LILITHCAPI) -c $< -o $@ 
+	$(CXX) $(CXXFLAGS) $(PYFLAGS) -I./include/ $(FSINC) -I$(LILITHCAPI) -c $< -o $@ 
 
 bin/scan_mh_mn.x: scan_mh_mn.o lilith.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) $(OPTIMLIB) -lgsl -lgslcblas $(LFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) -lgsl -lgslcblas $(LFLAGS)
 
 
 # Clean build files - but don't delete auto-generated or downloaded code
 
 clean:
 	-rm -f *.o ./bin/*.x
+
+distclean:
+	-rm -rf *.o ./bin/*.x MultiNest/ lilith/ 

@@ -266,7 +266,6 @@ int main() {
   settings.n_pars = 100;  // TODO(AF) set properly
   Py_Initialize();
   nested::run(loglike, bm_prior, settings);
-  optim::run(loglike, bm_prior, settings);
   Py_Finalize();
   return 0;
 }
