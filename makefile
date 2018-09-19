@@ -20,10 +20,10 @@ endif
 # FlexibleSUSY with our NMSSM/THMDS model
 
 FS = ../FlexibleSUSY
-MODEL = THDMIISNMSSMBCsimple
+MODEL = CNMSSM
 SARAH = ~/.Mathematica/Applications/SARAH/
-FSINC := -I$(FS)/config -I$(FS)/model_specific/SM -I$(FS)/src -I$(FS)/models/THDMIISNMSSMBCsimple -I/usr/include/eigen3 -I$(FS)/slhaea
-FSLIB := $(FS)/models/THDMIISNMSSMBCsimple/libTHDMIISNMSSMBCsimple.a $(FS)/model_specific/SM/libmodel_specific_SM.a $(FS)/src/libflexisusy.a
+FSINC := -I$(FS)/config -I$(FS)/model_specific/SM -I$(FS)/src -I$(FS)/models/CNMSSM -I/usr/include/eigen3 -I$(FS)/slhaea
+FSLIB := $(FS)/models/CNMSSM/libCNMSSM.a $(FS)/model_specific/SM/libmodel_specific_SM.a $(FS)/model_specific/NMSSM_higgs/libmodel_specific_NMSSM_higgs.a $(FS)/model_specific/MSSM_higgs/libmodel_specific_MSSM_higgs.a $(FS)/src/libflexisusy.a 
 
 all: bin/mn.x bin/lilith.x bin/scan_mh_mn.x
 
@@ -37,7 +37,7 @@ multinest:
 
 # Example MultiNest program
 
-bin/mn.x: multinest.cpp ./include/multinest.hpp multinest
+bin/mn.x: multinest.cpp ./include/multinest.hpp
 	$(CXX) $(CXXFLAGS) $< -I./include/ $(NESTLIB) -o $@
 
 # Lilith program for Higgs likelihood 
@@ -53,12 +53,12 @@ lilith:
 	[ -d $(LILITH) ] || (wget $(URL) && tar xzf $(TAR) && mv $(UNTAR) $(LILITH) && rm $(TAR) \
 	&& patch $(LILITH)/lilith/internal/computereducedcouplings.py lilith_VBF13_fix.patch)
 
-lilith.o: $(LILITHCAPI)/lilith.c lilith
+lilith.o: $(LILITHCAPI)/lilith.c 
 	$(CXX) $(CXXFLAGS) $(PYFLAGS) -I$(LILITHCAPI) -c $<
 
 # Example Lilith program with MultiNest
 
-bin/lilith.x: lilith.cpp lilith.o ./include/multinest.hpp ./include/higgs.hpp multinest
+bin/lilith.x: lilith.cpp lilith.o ./include/multinest.hpp ./include/higgs.hpp
 	$(CXX) $(CXXFLAGS) $(PYFLAGS) $< -I./include/ -I$(LILITHCAPI) $(NESTLIB) -o $@ $(LFLAGS) lilith.o
 
 # sarah: fs
@@ -80,8 +80,7 @@ scan_mh_mn.o: scan_mh_mn.cpp $(HEADER)
 	$(CXX) $(CXXFLAGS) $(PYFLAGS) -I./include/ $(FSINC) -I$(LILITHCAPI) -c $< -o $@ 
 
 bin/scan_mh_mn.x: scan_mh_mn.o lilith.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) -lgsl -lgslcblas $(LFLAGS)
-
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(FSLIB) $(NESTLIB) -lgsl -lgslcblas $(LFLAGS) 
 
 # Clean build files - but don't delete auto-generated or downloaded code
 

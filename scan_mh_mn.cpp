@@ -8,11 +8,11 @@
 #include <cmath>
 
 #include "config.h"
-#include "THDMIISNMSSMBCsimple_input_parameters.hpp"
-#include "THDMIISNMSSMBCsimple_effective_couplings.hpp"
-#include "THDMIISNMSSMBCsimple_slha_io.hpp"
-#include "THDMIISNMSSMBCsimple_spectrum_generator.hpp"
-#include "THDMIISNMSSMBCsimple_two_scale_spectrum_generator.hpp"
+#include "CNMSSM_input_parameters.hpp"
+#include "CNMSSM_effective_couplings.hpp"
+#include "CNMSSM_slha_io.hpp"
+#include "CNMSSM_spectrum_generator.hpp"
+#include "CNMSSM_semi_analytic_spectrum_generator.hpp"
 
 #include "standard_model.hpp"
 #include "standard_model_effective_couplings.hpp"
@@ -29,8 +29,8 @@
 using namespace flexiblesusy;
 using namespace standard_model;
 
-typedef THDMIISNMSSMBCsimple_spectrum_generator<Two_scale> NMSSM;
-typedef THDMIISNMSSMBCsimple_effective_couplings bsm_eff_couplings;
+typedef CNMSSM_spectrum_generator<Semi_analytic> NMSSM;
+typedef CNMSSM_effective_couplings bsm_eff_couplings;
 typedef Standard_model_effective_couplings sm_eff_couplings;
 
 constexpr double MA_unphysical = 5.;
@@ -55,19 +55,13 @@ common::pair loglike(common::parameters x, double threshold) {
   // We will sum the log-likelihood piece by piece
   double loglike_ = 0.;
 
-  THDMIISNMSSMBCsimple_input_parameters input;
+  CNMSSM_input_parameters input;
 
-  input.lambdaNMSSM = x[0];
-  input.kappaNMSSM = x[1];
-  input.AlambdaNMSSM = x[2];
-  input.AkappaNMSSM = x[3];
-  input.AtopNMSSM = x[4];
-  input.mstopL = x[5];
-  input.mstopR = x[6];
-  input.vSIN = x[7];
-  input.TanBeta = x[8];
-  input.MEWSB = x[9];
-
+  input.LambdaInput = x[0];
+  input.m12 = x[1];
+  input.TanBeta = x[2];
+  input.Azero = x[3];
+  input.SignvS = x[4];
   Physical_input physical_input;  // extra non-SLHA physical input
   // constructed with default values may want to fill
   softsusy::QedQcd qedqcd;
@@ -102,8 +96,8 @@ common::pair loglike(common::parameters x, double threshold) {
 
   // Higgs couplings from mixing angles
   auto ZH = model.get_ZH_pole_slha();
-  const double vu = model.get_v2();
-  const double vd = model.get_v1();
+  const double vu = model.get_vu();
+  const double vd = model.get_vd();
   const double tb = vu / vd;
   const double cb = std::cos(std::atan(tb));
   const double sb = std::sin(std::atan(tb));
@@ -228,15 +222,9 @@ common::parameters scan_prior(common::parameters x) {
     @returns Physical parameters
   */
   x[0] = priors::flat(x[0], 0., 2. * M_PI);  // \lambda
-  x[1] = priors::flat(x[1], 0., 2. * M_PI);  // \kappa
-  x[2] = priors::signed_log(x[2], 1.e3, 1.e4);  // A_\lambda
-  x[3] = priors::signed_log(x[3], 1.e3, 1.e4);  // A_\kappa
-  x[4] = priors::signed_log(x[4], 1.e3, 1.e4);  // A_t
-  x[5] = priors::log(x[5], 1.e3, 1.e4);  // m_stop_L
-  x[6] = priors::log(x[6], 1.e3, 1.e4);  // m_stop_R
-  x[7] = priors::log(x[7], 1.e3, 1.e4);  // v_S
-  x[8] = priors::flat(x[8], 1., 60.);  // \tan\beta
-  x[9] = priors::gaussian(x[9], 173.1, 0.6);  // m_top from PDG
+  x[1] = priors::log(x[5], 1.e2, 3.e4);  // m12
+  x[2] = priors::signed_log(x[2], 1.0, 1.e4);  // A_0
+  x[3] = 1;
   return x;
 }
 
@@ -248,15 +236,9 @@ common::parameters bm_prior(common::parameters x) {
     @returns Physical parameters
   */
   x[0] = priors::flat(x[0], 0., 2. * M_PI);  // \lambda
-  x[1] = priors::flat(x[1], 0., 2. * M_PI);  // \kappa
-  x[2] = 335.;  // A_\lambda
-  x[3] = -90.;  // A_\kappa
-  x[4] = 400.;  // A_t
-  x[5] = 1000.;  // m_stop_L
-  x[6] = 1000.;  // m_stop_R
-  x[7] = 404.061;  // v_S
-  x[8] = 1.5;  // \tan\beta
-  x[9] = 173.;  // m_top
+  x[1] = 5000.;  //m12
+  x[3] = 200.;  // A_0
+  x[4] = 1;  // sign[vS]
   return x;
 }
 
